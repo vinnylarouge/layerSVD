@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>layerSVD — Gemma 4 26B-A4B architecture map</title>
+<title>layerSVD — Gemma 4 26B-A4B architecture</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="stylesheet" href="css/style.css">
 </head>
@@ -18,30 +18,35 @@
 </header>
 
 <main>
-  <section id="model-summary"></section>
+  <section id="model-line"></section>
 
-  <div class="legend">
-    <span><span class="swatch" style="background:var(--swa)"></span>sliding-window attention</span>
-    <span><span class="swatch" style="background:var(--global)"></span>global attention</span>
-    <span><span class="swatch" style="background:var(--dense)"></span>dense FFN</span>
-    <span><span class="swatch" style="background:var(--moe)"></span>MoE FFN (128 experts, top-8)</span>
-    <span style="margin-left:auto;color:var(--text-dim)">click any block to expand</span>
-  </div>
+  <section id="flow-section">
+    <h2 class="section-title">flow</h2>
+    <p class="section-sub">
+      vertical residual stream · 30 blocks top-to-bottom · each block tees off twice
+      (attention add, ffn add) · sparklines are truncated singular value spectra of the
+      block's composed maps, plotted on a shared log-σ axis · hover any block for stats
+    </p>
+    <div id="flow-wrap"><svg id="flow"></svg></div>
+  </section>
 
-  <div id="layers" class="layers"></div>
-
-  <section style="margin-top:32px">
-    <h2 style="font-size:14px; color:var(--text-dim); border-bottom:1px solid var(--border); padding-bottom:6px;">Global tensors</h2>
-    <div id="globals" class="layers"></div>
+  <section id="ribbon-section">
+    <h2 class="section-title">small multiples</h2>
+    <p class="section-sub">
+      same data as the flow above, organized for layer-to-layer comparison · all sparklines
+      share one global log-σ y-axis · the unevenness in column 1 is the SWA/global periodicity
+    </p>
+    <div id="ribbon-wrap"><svg id="ribbon"></svg></div>
   </section>
 </main>
+
+<div id="tooltip" class="tooltip" hidden></div>
 
 <footer>
   built from <code>gemma-4-26B-A4B-it-Q4_K_M.gguf</code> &middot;
   <a href="https://github.com/vinnylarouge/layerSVD">source on github</a>
 </footer>
 
-<script src="js/d3.v7.min.js"></script>
 <script src="js/data_loader.js"></script>
 <script src="js/arch.js"></script>
 </body>
