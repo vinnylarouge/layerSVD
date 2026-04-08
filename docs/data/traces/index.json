@@ -1,0 +1,16 @@
+{
+  "exemplars": [
+    {
+      "id": "arithmetic",
+      "label": "arithmetic — 17 × 23 step by step"
+    },
+    {
+      "id": "narrative",
+      "label": "narrative — cat finds a key"
+    },
+    {
+      "id": "code",
+      "label": "code — fibonacci(n)"
+    }
+  ]
+}

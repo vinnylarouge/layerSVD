@@ -1,0 +1,31 @@
+# Large model artifacts (kept local only)
+model/
+data/raw/
+
+# Cloned external tooling
+tools/llama.cpp/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# uv
+.python-version
+
+# macOS
+.DS_Store
+
+# Editors
+.idea/
+.vscode/
+*.swp
+
+# Build artifacts
+build/
+dist/
+*.egg-info/

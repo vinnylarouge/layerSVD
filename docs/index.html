@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>layerSVD — Gemma 4 26B-A4B architecture map</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="topbar">
+  <h1>layerSVD <span class="muted">Gemma 4 26B-A4B</span></h1>
+  <nav>
+    <a class="active" href="index.html">architecture</a>
+    <a href="svd.html">svd browser</a>
+    <a href="trace.html">token tracer</a>
+    <a href="https://github.com/vinnylarouge/layerSVD" target="_blank" rel="noopener">github</a>
+  </nav>
+</header>
+
+<main>
+  <section id="model-summary"></section>
+
+  <div class="legend">
+    <span><span class="swatch" style="background:var(--swa)"></span>sliding-window attention</span>
+    <span><span class="swatch" style="background:var(--global)"></span>global attention</span>
+    <span><span class="swatch" style="background:var(--dense)"></span>dense FFN</span>
+    <span><span class="swatch" style="background:var(--moe)"></span>MoE FFN (128 experts, top-8)</span>
+    <span style="margin-left:auto;color:var(--text-dim)">click any block to expand</span>
+  </div>
+
+  <div id="layers" class="layers"></div>
+
+  <section style="margin-top:32px">
+    <h2 style="font-size:14px; color:var(--text-dim); border-bottom:1px solid var(--border); padding-bottom:6px;">Global tensors</h2>
+    <div id="globals" class="layers"></div>
+  </section>
+</main>
+
+<footer>
+  built from <code>gemma-4-26B-A4B-it-Q4_K_M.gguf</code> &middot;
+  <a href="https://github.com/vinnylarouge/layerSVD">source on github</a>
+</footer>
+
+<script src="js/d3.v7.min.js"></script>
+<script src="js/data_loader.js"></script>
+<script src="js/arch.js"></script>
+</body>
+</html>

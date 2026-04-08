@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>layerSVD — SVD spectrum browser</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="css/style.css">
+<style>
+.svd-controls {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.svd-controls label { font-size: 12px; color: var(--text-dim); }
+.svd-controls select, .svd-controls input {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.svd-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.svd-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+}
+.svd-card h2 {
+  margin: 0 0 10px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.svd-card.full { grid-column: 1 / -1; }
+#detail { font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+#detail strong { color: var(--text); }
+.heatmap-canvas { background: #000; border-radius: 4px; }
+.spectrum-canvas { background: var(--panel-2); border-radius: 4px; }
+.flow-canvas { background: #000; border-radius: 4px; }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <h1>layerSVD <span class="muted">Gemma 4 26B-A4B</span></h1>
+  <nav>
+    <a href="index.html">architecture</a>
+    <a class="active" href="svd.html">svd browser</a>
+    <a href="trace.html">token tracer</a>
+    <a href="https://github.com/vinnylarouge/layerSVD" target="_blank" rel="noopener">github</a>
+  </nav>
+</header>
+
+<main>
+  <div class="svd-controls">
+    <label>layer
+      <select id="layer-sel"></select>
+    </label>
+    <label>tensor
+      <select id="tensor-sel"></select>
+    </label>
+    <span id="detail"></span>
+  </div>
+
+  <div class="svd-grid">
+    <div class="svd-card">
+      <h2>singular value spectrum</h2>
+      <canvas id="spectrum" class="spectrum-canvas" width="600" height="240"></canvas>
+    </div>
+    <div class="svd-card">
+      <h2>top right singular vectors (heatmap)</h2>
+      <canvas id="heatmap" class="heatmap-canvas" width="600" height="240"></canvas>
+    </div>
+    <div class="svd-card full">
+      <h2>cross-layer flow: U_L vs V_(L+1) of <code>ffn_down_up</code> (cosine similarity)</h2>
+      <canvas id="flow" class="flow-canvas" width="1200" height="320"></canvas>
+      <div style="font-size:11px;color:var(--text-dim);margin-top:8px;">
+        rows = 64 left-singular vectors of layer L's composed dense FFN ("what L said");
+        cols = 64 right-singular vectors of layer L+1's composed dense FFN ("what L+1 listens for");
+        cell intensity = absolute cosine similarity. White diagonal means concept i in L
+        directly excites concept i in L+1. Diffuse patterns are normal — that's where labelling
+        becomes interesting.
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  data: <code>docs/data/svd/</code> &middot;
+  <a href="https://github.com/vinnylarouge/layerSVD">source on github</a>
+</footer>
+
+<script src="js/d3.v7.min.js"></script>
+<script src="js/data_loader.js"></script>
+<script src="js/svd.js"></script>
+</body>
+</html>

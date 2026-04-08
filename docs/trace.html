@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>layerSVD — token tracer</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="css/style.css">
+<style>
+.trace-controls {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 14px;
+}
+.trace-controls select, .trace-controls input[type="range"] {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.trace-controls input[type="range"] { padding: 0; width: 320px; }
+#current-token {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--accent);
+}
+.trace-grid {
+  display: grid;
+  grid-template-columns: 240px 1fr 240px;
+  gap: 12px;
+}
+.trace-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.trace-card h2 {
+  margin: 0 0 8px 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+#token-list {
+  max-height: 600px; overflow-y: auto;
+  font-family: var(--mono); font-size: 11px;
+}
+#token-list .tk {
+  padding: 2px 6px; cursor: pointer; border-radius: 3px;
+}
+#token-list .tk:hover { background: var(--panel-2); }
+#token-list .tk.active { background: var(--accent); color: #0c1118; font-weight: 600; }
+
+#layer-stack {
+  display: grid;
+  grid-template-columns: 30px repeat(30, minmax(20px, 1fr));
+  gap: 2px;
+  font-family: var(--mono); font-size: 10px;
+}
+#layer-stack .lbl { color: var(--text-dim); padding-right: 4px; }
+#layer-stack .cell { background: #161a22; height: 22px; border-radius: 1px; cursor: pointer; }
+#layer-stack .cell:hover { outline: 1px solid var(--accent); }
+
+#labels-panel { font-family: var(--mono); font-size: 11px; }
+#labels-panel input { background: var(--panel-2); color: var(--text); border: 1px solid var(--border); border-radius: 3px; padding: 2px 6px; width: 100%; font-family: var(--mono); font-size: 11px; margin: 2px 0; }
+#labels-panel button {
+  background: var(--accent); color: #0c1118; border: none; border-radius: 4px;
+  padding: 6px 12px; cursor: pointer; font-weight: 600; margin-top: 8px;
+}
+.legend-row {
+  font-size: 10px; color: var(--text-dim);
+  display: flex; gap: 12px; margin: 6px 0 0 0;
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <h1>layerSVD <span class="muted">Gemma 4 26B-A4B</span></h1>
+  <nav>
+    <a href="index.html">architecture</a>
+    <a href="svd.html">svd browser</a>
+    <a class="active" href="trace.html">token tracer</a>
+    <a href="https://github.com/vinnylarouge/layerSVD" target="_blank" rel="noopener">github</a>
+  </nav>
+</header>
+
+<main>
+  <div class="trace-controls">
+    <label>exemplar
+      <select id="exemplar-sel"></select>
+    </label>
+    <label>channel
+      <select id="channel-sel">
+        <option value="acts_q">acts_q</option>
+        <option value="acts_k">acts_k</option>
+        <option value="acts_v">acts_v</option>
+        <option value="acts_down_up">acts_down_up</option>
+        <option value="speak">speak</option>
+      </select>
+    </label>
+    <label>token
+      <input type="range" id="token-slider" min="0" max="0" value="0">
+    </label>
+    <span id="current-token">—</span>
+  </div>
+
+  <div class="trace-grid">
+    <div class="trace-card">
+      <h2>tokens</h2>
+      <div id="token-list"></div>
+    </div>
+    <div class="trace-card">
+      <h2>per-layer top concepts (rows = layers, cols = top-K, intensity = activation)</h2>
+      <canvas id="trace-heatmap" width="800" height="600" style="width:100%;background:#000;border-radius:4px;"></canvas>
+      <div class="legend-row">
+        layer 0 at top, layer 29 at bottom · K columns are the next layer's right-singular vectors of the selected channel · click a column to see/edit its label
+      </div>
+    </div>
+    <div class="trace-card">
+      <h2>labels (this layer / concept)</h2>
+      <div id="labels-panel">
+        <div id="label-context" style="color:var(--text-dim);font-size:10px;margin-bottom:6px;">click a heatmap cell to label</div>
+        <div id="label-list"></div>
+        <button id="download-labels">download labels.json</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  data: <code>docs/data/traces/</code> &middot;
+  labels persist in <code>localStorage</code> &middot;
+  <a href="https://github.com/vinnylarouge/layerSVD">source on github</a>
+</footer>
+
+<script src="js/d3.v7.min.js"></script>
+<script src="js/data_loader.js"></script>
+<script src="js/trace.js"></script>
+</body>
+</html>
