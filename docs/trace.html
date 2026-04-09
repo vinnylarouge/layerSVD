@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>layerSVD — token tracer</title>
+<title>layerSVD — concept chain miner</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="stylesheet" href="css/style.css">
 <style>
@@ -28,13 +28,12 @@
 }
 .trace-controls input[type="range"] { padding: 0; width: 320px; }
 #current-token {
-  font-family: var(--mono);
-  font-size: 13px;
-  color: var(--accent);
+  font-family: var(--mono); font-size: 13px; color: var(--accent);
 }
+
 .trace-grid {
   display: grid;
-  grid-template-columns: 240px 1fr 240px;
+  grid-template-columns: 220px 1fr 360px;
   gap: 12px;
 }
 .trace-card {
@@ -45,14 +44,13 @@
 }
 .trace-card h2 {
   margin: 0 0 8px 0;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 11px; font-weight: 600;
   color: var(--text-dim);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  text-transform: uppercase; letter-spacing: 0.04em;
 }
+
 #token-list {
-  max-height: 600px; overflow-y: auto;
+  max-height: 720px; overflow-y: auto;
   font-family: var(--mono); font-size: 11px;
 }
 #token-list .tk {
@@ -61,26 +59,138 @@
 #token-list .tk:hover { background: var(--panel-2); }
 #token-list .tk.active { background: var(--accent); color: #0c1118; font-weight: 600; }
 
-#layer-stack {
-  display: grid;
-  grid-template-columns: 30px repeat(30, minmax(20px, 1fr));
-  gap: 2px;
-  font-family: var(--mono); font-size: 10px;
+#trace-heatmap-wrap {
+  background: #000; border-radius: 4px; padding: 0;
+  position: relative;
 }
-#layer-stack .lbl { color: var(--text-dim); padding-right: 4px; }
-#layer-stack .cell { background: #161a22; height: 22px; border-radius: 1px; cursor: pointer; }
-#layer-stack .cell:hover { outline: 1px solid var(--accent); }
+#trace-heatmap {
+  display: block;
+  width: 100%; height: auto;
+  background: #000;
+  border-radius: 4px;
+  cursor: crosshair;
+}
 
-#labels-panel { font-family: var(--mono); font-size: 11px; }
-#labels-panel input { background: var(--panel-2); color: var(--text); border: 1px solid var(--border); border-radius: 3px; padding: 2px 6px; width: 100%; font-family: var(--mono); font-size: 11px; margin: 2px 0; }
-#labels-panel button {
-  background: var(--accent); color: #0c1118; border: none; border-radius: 4px;
-  padding: 6px 12px; cursor: pointer; font-weight: 600; margin-top: 8px;
-}
 .legend-row {
   font-size: 10px; color: var(--text-dim);
   display: flex; gap: 12px; margin: 6px 0 0 0;
+  flex-wrap: wrap;
 }
+.legend-row .swatch {
+  display: inline-block; width: 8px; height: 8px;
+  border-radius: 50%; vertical-align: middle; margin-right: 4px;
+}
+
+/* ----- chains panel ----- */
+#chains-panel {
+  font-family: var(--mono); font-size: 11px;
+  max-height: 720px; overflow-y: auto;
+}
+#chains-panel .empty-msg {
+  color: var(--text-dim); padding: 14px 0;
+  text-align: center; font-size: 11px;
+}
+.chain-card {
+  background: var(--panel-2);
+  border-radius: 6px;
+  padding: 8px 10px 10px 10px;
+  margin-bottom: 10px;
+  border-left: 4px solid var(--text-dim);
+}
+.chain-card.active {
+  outline: 1px solid var(--accent);
+}
+.chain-head {
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 6px;
+}
+.chain-head .chain-label {
+  flex: 1;
+  background: transparent; border: none; color: var(--text);
+  font-family: var(--mono); font-size: 12px; padding: 2px 4px;
+  border-bottom: 1px solid var(--border);
+}
+.chain-head .chain-label::placeholder { color: var(--text-dim); font-style: italic; }
+.chain-head .chain-del {
+  background: transparent; color: var(--text-dim);
+  border: none; font-size: 16px; cursor: pointer;
+  padding: 0 4px; line-height: 1;
+}
+.chain-head .chain-del:hover { color: var(--bad); }
+
+.chain-node {
+  padding: 4px 6px;
+  margin: 2px -4px;
+  border-radius: 3px;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+}
+.chain-node:hover { background: var(--panel); border-left-color: var(--accent); }
+.chain-node.current { background: var(--panel); border-left-color: var(--accent); }
+
+.chain-node-id {
+  font-weight: 500; color: var(--text);
+  display: flex; gap: 8px; align-items: baseline;
+}
+.chain-node-id .ch {
+  display: inline-block; padding: 0 4px;
+  background: var(--bg); color: var(--text);
+  border-radius: 2px; font-size: 9.5px;
+}
+.chain-node-id .ch.q  { background: #1f3a5c; }
+.chain-node-id .ch.k  { background: #1f5c3a; }
+.chain-node-id .ch.v  { background: #5c3a1f; }
+.chain-node-id .ch.d  { background: #4a1f5c; }
+.chain-node-id .ch.s  { background: #1f5c5c; }
+.chain-node-edge { color: var(--text-dim); font-size: 9.5px; }
+.chain-node-tokens {
+  color: var(--text-dim); font-size: 9.5px;
+  margin-top: 2px; line-height: 1.4;
+  display: flex; flex-wrap: wrap; gap: 4px;
+}
+.chain-node-tokens .tok {
+  background: var(--bg); padding: 1px 4px; border-radius: 2px;
+  white-space: nowrap;
+}
+.chain-node-tokens .tok em { color: var(--accent); font-style: normal; margin-left: 2px; }
+
+.chain-extend {
+  margin-top: 8px;
+  border-top: 1px dashed var(--border);
+  padding-top: 6px;
+}
+.chain-extend h4 {
+  margin: 4px 0 4px 0; font-size: 9.5px;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--text-dim); font-weight: 500;
+}
+.chain-extend .candidates {
+  display: flex; flex-direction: column; gap: 1px;
+}
+.chain-extend .cand {
+  padding: 3px 6px; cursor: pointer; border-radius: 3px;
+  display: flex; gap: 6px; align-items: baseline;
+  font-size: 10px;
+}
+.chain-extend .cand:hover { background: var(--panel); }
+.chain-extend .cand .score { color: var(--accent); width: 36px; }
+.chain-extend .cand .id { color: var(--text); width: 110px; }
+.chain-extend .cand .toks { color: var(--text-dim); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.chain-buttons {
+  display: flex; gap: 6px; margin-top: 12px;
+}
+.chain-buttons button {
+  flex: 1;
+  background: var(--panel-2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 4px;
+  padding: 6px 10px; cursor: pointer;
+  font-family: var(--mono); font-size: 11px;
+}
+.chain-buttons button.primary {
+  background: var(--accent); color: #0c1118; border-color: var(--accent); font-weight: 600;
+}
+.chain-buttons button:hover { border-color: var(--accent); }
 </style>
 </head>
 <body>
@@ -89,7 +199,7 @@
   <nav>
     <a href="index.html">architecture</a>
     <a href="svd.html">svd browser</a>
-    <a class="active" href="trace.html">token tracer</a>
+    <a class="active" href="trace.html">concept chains</a>
     <a href="https://github.com/vinnylarouge/layerSVD" target="_blank" rel="noopener">github</a>
   </nav>
 </header>
@@ -99,13 +209,13 @@
     <label>exemplar
       <select id="exemplar-sel"></select>
     </label>
-    <label>channel
+    <label>heatmap channel
       <select id="channel-sel">
-        <option value="acts_q">acts_q</option>
-        <option value="acts_k">acts_k</option>
-        <option value="acts_v">acts_v</option>
-        <option value="acts_down_up">acts_down_up</option>
-        <option value="speak">speak</option>
+        <option value="acts_q">acts_q (next-attn query)</option>
+        <option value="acts_k">acts_k (next-attn key)</option>
+        <option value="acts_v">acts_v (next-attn value)</option>
+        <option value="acts_down_up" selected>acts_down_up (next-ffn read)</option>
+        <option value="speak">speak (this-layer ffn out)</option>
       </select>
     </label>
     <label>token
@@ -120,30 +230,38 @@
       <div id="token-list"></div>
     </div>
     <div class="trace-card">
-      <h2>per-layer top concepts (rows = layers, cols = top-K, intensity = activation)</h2>
-      <canvas id="trace-heatmap" width="800" height="600" style="width:100%;background:#000;border-radius:4px;"></canvas>
+      <h2>concept activation heatmap · click to pin</h2>
+      <div id="trace-heatmap-wrap">
+        <svg id="trace-heatmap"></svg>
+      </div>
       <div class="legend-row">
-        layer 0 at top, layer 29 at bottom · K columns are the next layer's right-singular vectors of the selected channel · click a column to see/edit its label
+        rows = layers (L00 top → L29 bottom) ·
+        cols = K=64 right-singular vectors of the selected channel ·
+        cell color = activation magnitude at the current token
+        <span style="margin-left:auto">
+          <span class="swatch" style="background:#ff6f6f"></span>chain markers ·
+          rings on the heatmap = same-channel shadows ·
+          off-channel shadows live in the side panel
+        </span>
       </div>
     </div>
     <div class="trace-card">
-      <h2>labels (this layer / concept)</h2>
-      <div id="labels-panel">
-        <div id="label-context" style="color:var(--text-dim);font-size:10px;margin-bottom:6px;">click a heatmap cell to label</div>
-        <div id="label-list"></div>
-        <button id="download-labels">download labels.json</button>
+      <h2>concept chains</h2>
+      <div id="chains-panel"></div>
+      <div class="chain-buttons">
+        <button id="new-chain">+ new chain</button>
+        <button id="export-motifs" class="primary">download motifs.json</button>
       </div>
     </div>
   </div>
 </main>
 
 <footer>
-  data: <code>docs/data/traces/</code> &middot;
-  labels persist in <code>localStorage</code> &middot;
+  pin a cell · ring-extend or pick a candidate row to grow the chain across layers and channels ·
+  chains persist in memory only — export to keep them ·
   <a href="https://github.com/vinnylarouge/layerSVD">source on github</a>
 </footer>
 
-<script src="js/d3.v7.min.js"></script>
 <script src="js/data_loader.js"></script>
 <script src="js/trace.js"></script>
 </body>
