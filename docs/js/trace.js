@@ -304,9 +304,25 @@ function pinConcept(L, channel, slot) {
   // Auto-create a chain on first pin
   if (!activeChain()) newChain();
   const chain = activeChain();
-  // Don't double-pin
-  if (chain.nodes.some((n) => n.layer === L && n.channel === channel && n.slot === slot)) return;
-  chain.nodes.push({ layer: L, channel, slot });
+  // Toggle: if already pinned in this chain, remove (deselect)
+  const existingIdx = chain.nodes.findIndex(
+    (n) => n.layer === L && n.channel === channel && n.slot === slot
+  );
+  if (existingIdx >= 0) {
+    chain.nodes.splice(existingIdx, 1);
+  } else {
+    chain.nodes.push({ layer: L, channel, slot });
+  }
+  recomputeShadows(chain);
+  renderHeatmap();
+  renderChainsPanel();
+}
+
+function removeNodeAt(chainId, nodeIdx) {
+  const chain = findChain(chainId);
+  if (!chain) return;
+  if (nodeIdx < 0 || nodeIdx >= chain.nodes.length) return;
+  chain.nodes.splice(nodeIdx, 1);
   recomputeShadows(chain);
   renderHeatmap();
   renderChainsPanel();
@@ -362,6 +378,20 @@ function renderHeatmap() {
   STATE.padL = PAD_L;
   STATE.padT = PAD_T;
 
+  // Reusable arrowhead marker that picks up the line's stroke colour.
+  const defs = el("defs", {}, svg);
+  const marker = el("marker", {
+    id: "chain-arrow",
+    viewBox: "0 0 8 8",
+    refX: "6.4",
+    refY: "4",
+    markerWidth: "5",
+    markerHeight: "5",
+    orient: "auto",
+    markerUnits: "userSpaceOnUse",
+  }, defs);
+  el("path", { d: "M0,0 L8,4 L0,8 Z", fill: "context-stroke" }, marker);
+
   // Compute row activations for current token + max abs for normalization
   const t = STATE.tokenIdx;
   let maxAbs = 1e-12;
@@ -408,6 +438,43 @@ function renderHeatmap() {
       "font-family": "ui-monospace,monospace",
       "font-size": 9.5,
     }, svg).textContent = `L${L.toString().padStart(2, "0")}`;
+  }
+
+  // Cell geometry helper used by arrow drawing
+  const cellCenter = (L, slot) => [
+    PAD_L + slot * cellW + cellW / 2,
+    PAD_T + L * cellH + cellH / 2,
+  ];
+
+  // Chain arrows: connect consecutive nodes in the order they were pinned.
+  // Drawn beneath pin/shadow markers so the markers stay on top.
+  for (const chain of STATE.chains) {
+    if (chain.nodes.length < 2) continue;
+    for (let i = 1; i < chain.nodes.length; i++) {
+      const a = chain.nodes[i - 1];
+      const b = chain.nodes[i];
+      if (a.layer === b.layer && a.slot === b.slot) continue;
+      const [x1, y1] = cellCenter(a.layer, a.slot);
+      const [x2, y2] = cellCenter(b.layer, b.slot);
+      // Shorten the line at both ends so the arrow doesn't bury the pin marker
+      const dx = x2 - x1, dy = y2 - y1;
+      const dist = Math.hypot(dx, dy);
+      if (dist < 0.5) continue;
+      const trim = Math.min(cellW * 0.45, dist * 0.4);
+      const ux = dx / dist, uy = dy / dist;
+      const sx = x1 + ux * trim;
+      const sy = y1 + uy * trim;
+      const ex = x2 - ux * trim;
+      const ey = y2 - uy * trim;
+      el("line", {
+        x1: sx, y1: sy, x2: ex, y2: ey,
+        stroke: chain.color,
+        "stroke-width": 1.2,
+        opacity: 0.55,
+        "marker-end": "url(#chain-arrow)",
+        "pointer-events": "none",
+      }, svg);
+    }
   }
 
   // Pin and shadow overlays
@@ -568,6 +635,7 @@ function renderChainsPanel() {
           <span class="ch ${chLetter}">${chLetter}</span>
           <span>i=${n.slot.toString().padStart(2, "0")}</span>
           ${edge}
+          <button class="node-del" title="remove this node">×</button>
         </div>
         <div class="chain-node-tokens">
           ${tokens.map((t) => `<span class="tok">${escapeHtml(t.label)}<em>${t.activation >= 0 ? "+" : ""}${t.activation.toFixed(1)}</em></span>`).join("")}
@@ -580,6 +648,10 @@ function renderChainsPanel() {
         }
         renderHeatmap();
         renderChainsPanel();
+      });
+      row.querySelector(".node-del").addEventListener("click", (e) => {
+        e.stopPropagation();
+        removeNodeAt(chain.id, ni);
       });
       card.appendChild(row);
     }

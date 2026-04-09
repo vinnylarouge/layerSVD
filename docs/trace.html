@@ -132,6 +132,14 @@
   font-weight: 500; color: var(--text);
   display: flex; gap: 8px; align-items: baseline;
 }
+.chain-node-id .node-del {
+  margin-left: auto;
+  background: transparent; color: var(--text-dim); border: none;
+  font-size: 13px; line-height: 1; cursor: pointer; padding: 0 2px;
+  visibility: hidden;
+}
+.chain-node:hover .node-del { visibility: visible; }
+.chain-node-id .node-del:hover { color: var(--bad); }
 .chain-node-id .ch {
   display: inline-block; padding: 0 4px;
   background: var(--bg); color: var(--text);
